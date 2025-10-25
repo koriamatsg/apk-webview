@@ -1,5 +1,4 @@
-
-name: Build APK
+name: Build APK (Fixed v4)
 
 on:
   push:
@@ -12,31 +11,58 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v3
+    - name: Checkout repository
+      uses: actions/checkout@v4
     
     - name: Extract Android Project ZIP
       run: |
         echo "📦 Extracting android_webview_project.zip..."
-        unzip -q android_webview_project.zip
-        echo "✅ ZIP extracted successfully"
-        ls -la
+        if [ -f "android_webview_project.zip" ]; then
+          unzip -q android_webview_project.zip
+          echo "✅ ZIP extracted successfully"
+          ls -la
+        else
+          echo "❌ android_webview_project.zip not found!"
+          exit 1
+        fi
     
     - name: Set up JDK 11
-      uses: actions/setup-java@v3
+      uses: actions/setup-java@v4
       with:
         java-version: '11'
         distribution: 'temurin'
-        
+    
+    - name: Set up Android SDK
+      uses: android-actions/setup-android@v3
+    
     - name: Grant execute permission for gradlew
       working-directory: ./android_webview
       run: chmod +x gradlew
-      
+    
     - name: Build with Gradle
       working-directory: ./android_webview
       run: ./gradlew assembleDebug
-      
-    - name: Upload APK
-      uses: actions/upload-artifact@v3
+    
+    - name: Verify APK creation
+      run: |
+        APK_PATH="android_webview/app/build/outputs/apk/debug/app-debug.apk"
+        if [ -f "$APK_PATH" ]; then
+          echo "✅ APK created: $APK_PATH"
+          ls -lh "$APK_PATH"
+        else
+          echo "❌ APK not found!"
+          exit 1
+        fi
+    
+    - name: Upload APK (Fixed v4)
+      uses: actions/upload-artifact@v4
       with:
         name: app-debug
         path: android_webview/app/build/outputs/apk/debug/app-debug.apk
+    
+    - name: Upload source code (Fixed v4)
+      uses: actions/upload-artifact@v4
+      with:
+        name: source-code
+        path: android_webview/
+        retention-days: 30
