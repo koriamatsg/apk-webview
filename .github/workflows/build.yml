@@ -1,4 +1,4 @@
-name: Build APK - Environment Variables Fixed
+name: Build APK - Completely Fresh Wrapper
 
 on:
   push:
@@ -32,142 +32,125 @@ jobs:
         api-level: '34'
         build-tools-version: '34.0.0'
     
-    - name: Check and Fix Gradle wrapper
+    - name: Completely replace Gradle wrapper
       working-directory: ./android_webview
       run: |
-        echo "🔍 Checking Gradle wrapper files..."
+        echo "🔧 Completely replacing Gradle wrapper..."
         
-        # Check what wrapper files exist
-        ls -la gradlew* 2>/dev/null || echo "No gradlew files found initially"
+        # Remove ALL existing wrapper files
+        echo "🗑️ Removing old wrapper files..."
+        rm -f gradlew gradlew.bat
+        rm -rf gradle/
         
-        # Check if gradle wrapper directory exists
-        if [ -d "gradle/wrapper" ]; then
-          echo "📁 Found gradle/wrapper directory"
-          ls -la gradle/wrapper/
-        else
-          echo "⚠️  No gradle/wrapper directory found"
-        fi
+        echo "✨ Generating fresh Gradle wrapper..."
         
-        # Set permissions only for existing files
-        echo "🔧 Setting permissions for existing Gradle wrapper..."
-        if [ -f "gradlew" ]; then
-          chmod +x gradlew
-          echo "✅ Set permissions on gradlew"
-        fi
+        # Install gradle temporarily to generate wrapper
+        cd /tmp
+        wget -q https://services.gradle.org/distributions/gradle-8.7-bin.zip
+        unzip -q gradle-8.7-bin.zip
+        export PATH=$PATH:/tmp/gradle-8.7/bin
         
-        echo "📋 Current wrapper status:"
-        ls -la gradlew* 2>/dev/null || echo "Still no wrapper files"
+        # Generate wrapper using local gradle
+        cd /workspace/android_webview
+        gradle wrapper --gradle-version 8.7
+        
+        # Set permissions
+        chmod +x gradlew
+        
+        echo "✅ Fresh wrapper generated"
+        ls -la gradlew*
+        
+        echo "🧹 Cleaning up..."
+        rm -rf /tmp/gradle*
     
-    - name: Verify Gradle wrapper
+    - name: Verify new wrapper
       working-directory: ./android_webview
       run: |
-        echo "🔧 Testing Gradle wrapper basic functionality..."
+        echo "🧪 Testing fresh Gradle wrapper..."
         
-        # First test without any environment variables
-        echo "🧪 Testing ./gradlew --version without custom env..."
-        ./gradlew --version || {
-          echo "⚠️  Basic Gradle test failed, trying alternative..."
-          # Try with minimal environment
-          export GRADLE_OPTS=""
-          export JAVA_OPTS=""
-          ./gradlew --version || {
-            echo "❌ Gradle wrapper completely broken"
-            exit 1
-          }
-        }
+        # Test wrapper without any environment variables
+        ./gradlew --version
         
-        echo "✅ Gradle wrapper is functional"
+        echo "✅ Fresh wrapper is working!"
     
     - name: Clean project thoroughly
       working-directory: ./android_webview
       run: |
-        echo "🧹 Cleaning project directories..."
+        echo "🧹 Deep cleaning project..."
         
         # Remove all build artifacts
-        if [ -d "app/build" ]; then
-          rm -rf app/build/
-          echo "✅ Removed app/build/"
-        fi
+        rm -rf app/build/
+        rm -rf build/
+        rm -rf .gradle/
         
-        if [ -d "build" ]; then
-          rm -rf build/
-          echo "✅ Removed build/"
-        fi
-        
-        if [ -d ".gradle" ]; then
-          rm -rf .gradle/
-          echo "✅ Removed .gradle/"
+        # Check for gradle.properties and remove if problematic
+        if [ -f "gradle.properties" ]; then
+          echo "🔍 Checking gradle.properties..."
+          cat gradle.properties
+          
+          # Backup and clean gradle.properties if it has memory settings
+          if grep -q "org.gradle.jvmargs\|org.gradle.heap\|GRADLE_OPTS" gradle.properties; then
+            echo "⚠️  Found problematic memory settings in gradle.properties"
+            cp gradle.properties gradle.properties.backup
+            # Remove memory-related lines
+            sed -i '/org.gradle.jvmargs/d' gradle.properties
+            sed -i '/org.gradle.heap/d' gradle.properties
+            sed -i '/GRADLE_OPTS/d' gradle.properties
+            echo "✅ Cleaned gradle.properties"
+          fi
         fi
         
         echo "🔄 Clean completed"
     
-    - name: Build APK - Simple Environment
+    - name: Build APK with fresh setup
       working-directory: ./android_webview
       run: |
-        echo "🏗️ Starting APK build with clean environment..."
-        echo "📊 Build configuration:"
-        echo "  - Environment: Linux/Ubuntu"
-        echo "  - Java: JDK 17"
-        echo "  - Gradle: Wrapper (./gradlew)"
-        echo "  - Build type: Debug"
-        echo "  - Memory: Default (let Gradle handle it)"
+        echo "🏗️ Building APK with fresh Gradle wrapper..."
+        echo "📊 Configuration:"
+        echo "  - Fresh Gradle wrapper (8.7)"
+        echo "  - Clean gradle.properties"
+        echo "  - No custom memory settings"
         
-        # Build APK WITHOUT custom environment variables to avoid conflicts
-        ./gradlew assembleDebug \
-          --no-daemon \
-          --stacktrace \
-          --continue
+        # Build APK with minimal options
+        ./gradlew assembleDebug --no-daemon --stacktrace
         
         BUILD_EXIT_CODE=$?
         
         if [ $BUILD_EXIT_CODE -eq 0 ]; then
           echo "✅ APK build completed successfully!"
         else
-          echo "❌ APK build failed with exit code: $BUILD_EXIT_CODE"
-          echo "🔍 Checking for partial build artifacts..."
-          find app/build -name "*.apk" -type f 2>/dev/null || echo "No APK files found"
+          echo "❌ APK build failed"
+          echo "🔍 Checking what was created..."
+          find app/build -name "*.apk" -type f 2>/dev/null || echo "No APK found"
           exit $BUILD_EXIT_CODE
         fi
     
     - name: Verify APK exists
       run: |
         APK_PATH="android_webview/app/build/outputs/apk/debug/app-debug.apk"
-        echo "🔍 Verifying APK creation..."
+        echo "🔍 Verifying APK..."
         
         if [ -f "$APK_PATH" ]; then
-          echo "✅ SUCCESS: APK created successfully!"
-          echo "📱 APK Details:"
+          echo "✅ SUCCESS: APK created!"
           ls -lh "$APK_PATH"
           file "$APK_PATH"
-          echo "📏 APK Size: $(du -h "$APK_PATH" | cut -f1)"
         else
-          echo "❌ ERROR: APK not found at expected location"
-          echo "🔍 Searching for any APK files..."
+          echo "❌ APK not found"
+          echo "🔍 Looking for any APK files..."
           find android_webview -name "*.apk" -type f
-          echo "🔍 Checking build directory structure:"
-          find android_webview/app/build -type f | head -10
           exit 1
         fi
     
-    - name: Upload APK (v4)
+    - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
-        name: webview-apk-debug-fixed
+        name: webview-apk-fresh-wrapper
         path: android_webview/app/build/outputs/apk/debug/app-debug.apk
         retention-days: 30
     
-    - name: Upload project source
+    - name: Upload fresh project
       uses: actions/upload-artifact@v4
       with:
-        name: project-source-fixed
+        name: project-with-fresh-wrapper
         path: android_webview/
         retention-days: 30
-    
-    - name: Upload build logs
-      uses: actions/upload-artifact@v4
-      with:
-        name: build-logs-fixed
-        path: |
-          android_webview/app/build/
-          android_webview/.gradle/
-        retention-days: 7
