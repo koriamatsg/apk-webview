@@ -1,4 +1,4 @@
-name: Build APK - Gradle Wrapper Fixed
+name: Build APK - Environment Variables Fixed
 
 on:
   push:
@@ -55,59 +55,28 @@ jobs:
           echo "✅ Set permissions on gradlew"
         fi
         
-        if [ -f "gradlew.bat" ]; then
-          chmod +x gradlew.bat  
-          echo "✅ Set permissions on gradlew.bat"
-        fi
-        
-        # If no wrapper exists, we need to create one
-        if [ ! -f "gradlew" ] && [ ! -f "gradlew.bat" ]; then
-          echo "🔧 No Gradle wrapper found, will generate one..."
-        fi
-        
         echo "📋 Current wrapper status:"
         ls -la gradlew* 2>/dev/null || echo "Still no wrapper files"
     
-    - name: Generate Gradle wrapper if missing
+    - name: Verify Gradle wrapper
       working-directory: ./android_webview
       run: |
-        echo "🔧 Checking if we need to generate wrapper..."
+        echo "🔧 Testing Gradle wrapper basic functionality..."
         
-        if [ ! -f "gradlew" ]; then
-          echo "⚠️  gradlew not found, generating wrapper..."
-          # Use gradle to generate wrapper
-          gradle wrapper --gradle-version 8.0
-          chmod +x gradlew
-          echo "✅ Generated gradlew wrapper"
-        else
-          echo "✅ gradlew already exists"
-        fi
+        # First test without any environment variables
+        echo "🧪 Testing ./gradlew --version without custom env..."
+        ./gradlew --version || {
+          echo "⚠️  Basic Gradle test failed, trying alternative..."
+          # Try with minimal environment
+          export GRADLE_OPTS=""
+          export JAVA_OPTS=""
+          ./gradlew --version || {
+            echo "❌ Gradle wrapper completely broken"
+            exit 1
+          }
+        }
         
-        # Verify wrapper exists
-        if [ -f "gradlew" ]; then
-          echo "✅ gradlew wrapper is ready"
-          ./gradlew --version
-        else
-          echo "❌ ERROR: Cannot create gradlew wrapper"
-          exit 1
-        fi
-    
-    - name: Set Gradle environment variables
-      working-directory: ./android_webview
-      run: |
-        echo "🔧 Setting Gradle environment variables..."
-        
-        # Set environment variables
-        export GRADLE_OPTS="-Xmx2g -Dfile.encoding=UTF-8"
-        export JAVA_OPTS="-Xmx2g -Dfile.encoding=UTF-8"
-        
-        # Export to GitHub environment
-        echo "GRADLE_OPTS=$GRADLE_OPTS" >> $GITHUB_ENV
-        echo "JAVA_OPTS=$JAVA_OPTS" >> $GITHUB_ENV
-        
-        echo "✅ Environment variables set"
-        echo "GRADLE_OPTS: $GRADLE_OPTS"
-        echo "JAVA_OPTS: $JAVA_OPTS"
+        echo "✅ Gradle wrapper is functional"
     
     - name: Clean project thoroughly
       working-directory: ./android_webview
@@ -130,20 +99,20 @@ jobs:
           echo "✅ Removed .gradle/"
         fi
         
-        echo "🔄 Testing Gradle wrapper..."
-        ./gradlew --version --no-daemon
+        echo "🔄 Clean completed"
     
-    - name: Build APK
+    - name: Build APK - Simple Environment
       working-directory: ./android_webview
       run: |
-        echo "🏗️ Starting APK build..."
+        echo "🏗️ Starting APK build with clean environment..."
         echo "📊 Build configuration:"
         echo "  - Environment: Linux/Ubuntu"
         echo "  - Java: JDK 17"
         echo "  - Gradle: Wrapper (./gradlew)"
         echo "  - Build type: Debug"
+        echo "  - Memory: Default (let Gradle handle it)"
         
-        # Build APK with all environment variables
+        # Build APK WITHOUT custom environment variables to avoid conflicts
         ./gradlew assembleDebug \
           --no-daemon \
           --stacktrace \
@@ -183,21 +152,21 @@ jobs:
     - name: Upload APK (v4)
       uses: actions/upload-artifact@v4
       with:
-        name: webview-apk-debug
+        name: webview-apk-debug-fixed
         path: android_webview/app/build/outputs/apk/debug/app-debug.apk
         retention-days: 30
     
     - name: Upload project source
       uses: actions/upload-artifact@v4
       with:
-        name: project-source-complete
+        name: project-source-fixed
         path: android_webview/
         retention-days: 30
     
     - name: Upload build logs
       uses: actions/upload-artifact@v4
       with:
-        name: build-logs-debug
+        name: build-logs-fixed
         path: |
           android_webview/app/build/
           android_webview/.gradle/
