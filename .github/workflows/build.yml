@@ -1,8 +1,9 @@
-name: Build APK (Platforms Fix)
+name: Build APK - Complete Fixed Version
 
 on:
   push:
     branches: [ main ]
+  workflow_dispatch:  # Manual trigger
 
 jobs:
   build:
@@ -12,11 +13,12 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
     
-    - name: Extract Android Project ZIP
+    - name: Extract Android Project
       run: |
-        echo "📦 Extracting android_webview_project.zip..."
+        echo "📦 Extracting project..."
         unzip -q android_webview_project.zip
         echo "✅ Extracted successfully"
+        ls -la android_webview/
     
     - name: Set up JDK 17
       uses: actions/setup-java@v4
@@ -24,53 +26,93 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
     
-    - name: Set up Android SDK
+    - name: Setup Android SDK
       uses: android-actions/setup-android@v3
       with:
         api-level: '34'
         build-tools-version: '34.0.0'
     
-    - name: Verify Android SDK (Fixed)
-      run: |
-        echo "📱 Android SDK tools:"
-        echo "📱 SDK root: $ANDROID_SDK_ROOT"
-        echo "📱 Available platforms:"
-        ls -la $ANDROID_SDK_ROOT/platforms/  # ✅ Fixed - use ls instead of execute
-        echo "📱 Available build-tools:"
-        ls -la $ANDROID_SDK_ROOT/build-tools/
-    
-    - name: Grant execute permission for gradlew
+    - name: Fix Gradle permissions and environment
       working-directory: ./android_webview
       run: |
-        chmod +x gradlew
-        ls -la gradlew
+        echo "🔧 Fixing Gradle wrapper..."
+        chmod +x gradlew gradlew.bat
+        
+        echo "🔧 Setting environment variables..."
+        export GRADLE_OPTS="-Xmx2g -Dfile.encoding=UTF-8"
+        export JAVA_OPTS="-Xmx2g -Dfile.encoding=UTF-8"
+        echo "GRADLE_OPTS=$GRADLE_OPTS" >> $GITHUB_ENV
+        echo "JAVA_OPTS=$JAVA_OPTS" >> $GITHUB_ENV
+        
+        echo "📋 Verifying setup:"
+        java -version
+        ls -la gradlew*
     
-    - name: Build with Gradle
+    - name: Clean project thoroughly
       working-directory: ./android_webview
       run: |
-        echo "🏗️ Building APK..."
-        echo "📋 Gradle version:"
-        ./gradlew --version
-        echo "🔨 Starting build..."
-        ./gradlew assembleDebug --stacktrace
+        echo "🧹 Cleaning project..."
+        # Remove all build directories
+        rm -rf app/build/
+        rm -rf build/
+        rm -rf .gradle/
+        
+        echo "🔄 Initial Gradle version check..."
+        ./gradlew --version --no-daemon
     
-    - name: Verify APK creation
+    - name: Build APK (Final Step)
+      working-directory: ./android_webview
+      run: |
+        echo "🏗️ Starting APK build..."
+        echo "📊 Using Gradle with fixed environment..."
+        
+        # Build with all fixes applied
+        ./gradlew assembleDebug \
+          --no-daemon \
+          --stacktrace \
+          --info \
+          --continue
+        
+        echo "✅ Build process completed"
+    
+    - name: Verify APK exists
       run: |
         APK_PATH="android_webview/app/build/outputs/apk/debug/app-debug.apk"
+        echo "🔍 Verifying APK..."
+        
         if [ -f "$APK_PATH" ]; then
-          echo "✅ APK created successfully!"
+          echo "✅ SUCCESS: APK created!"
           ls -lh "$APK_PATH"
           echo "📱 APK details:"
           file "$APK_PATH"
         else
-          echo "❌ APK not found, checking build outputs:"
-          find android_webview/app/build -name "*.apk" -type f
+          echo "❌ ERROR: APK not found!"
+          echo "🔍 Checking all APK files:"
+          find android_webview -name "*.apk" -type f
+          echo "🔍 Build directories:"
+          find android_webview/app/build -type d | head -5
           exit 1
         fi
     
-    - name: Upload APK
+    - name: Upload APK (v4)
       uses: actions/upload-artifact@v4
       with:
-        name: webview-app
+        name: webview-app-debug
         path: android_webview/app/build/outputs/apk/debug/app-debug.apk
         retention-days: 30
+    
+    - name: Upload project source
+      uses: actions/upload-artifact@v4
+      with:
+        name: project-source
+        path: android_webview/
+        retention-days: 30
+    
+    - name: Upload build logs
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-logs
+        path: |
+          android_webview/app/build/
+          android_webview/.gradle/
+        retention-days: 7
