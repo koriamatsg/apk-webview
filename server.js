@@ -4,17 +4,23 @@ const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const HOST = '0.0.0.0'; // Memastikan server dapat diakses di Android/Termux
 const BASE_URL = 'https://am.rafaelxd.my.id';
 const TIMEOUT = 60000;
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// API 1: Send Link ke Email
+// Explicit Route jika static folder mengalami masalah path di Termux
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// API 1: Kirim Link ke Email
 app.post('/api/send', async (req, res) => {
     const { email } = req.body;
     if (!email) {
-        return res.status(400).json({ success: false, error: 'Email wajib diisi' });
+        return res.status(400).json({ success: false, error: 'Email wajib diisi!' });
     }
 
     try {
@@ -34,7 +40,7 @@ app.post('/api/send', async (req, res) => {
     } catch (error) {
         return res.status(500).json({
             success: false,
-            error: error.response?.data?.message || error.message
+            error: error.response?.data?.message || error.message || 'Gagal terhubung ke API tujuan'
         });
     }
 });
@@ -43,7 +49,7 @@ app.post('/api/send', async (req, res) => {
 app.post('/api/verify', async (req, res) => {
     const { email, rawLink } = req.body;
     if (!email || !rawLink) {
-        return res.status(400).json({ success: false, error: 'Email dan Link Verifikasi wajib diisi' });
+        return res.status(400).json({ success: false, error: 'Email dan Link Verifikasi wajib diisi!' });
     }
 
     try {
@@ -67,11 +73,16 @@ app.post('/api/verify', async (req, res) => {
     } catch (error) {
         return res.status(500).json({
             success: false,
-            error: error.response?.data?.message || error.message
+            error: error.response?.data?.message || error.message || 'Gagal memproses verifikasi'
         });
     }
 });
 
-app.listen(PORT, () => {
-    console.log(`Server running at http://localhost:${PORT}`);
+app.listen(PORT, HOST, () => {
+    console.log(`===========================================`);
+    console.log(`🚀 Server Berhasil Berjalan!`);
+    console.log(`🌐 Buka di browser HP kamu:`);
+    console.log(`👉 http://localhost:${PORT}`);
+    console.log(`👉 http://127.0.0.1:${PORT}`);
+    console.log(`===========================================`);
 });
