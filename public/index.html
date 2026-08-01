@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alight Motion Premium Generator</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --accent-color: #00d26a;
+            --accent-hover: #00b359;
+            --text-color: #f8fafc;
+            --text-muted: #94a3b8;
+            --danger: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            width: 100%;
+            max-width: 500px;
+            padding: 28px;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        h1 {
+            font-size: 24px;
+            text-align: center;
+            margin-bottom: 8px;
+            color: var(--accent-color);
+        }
+
+        p.subtitle {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        .step-card {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .step-title {
+            font-weight: 600;
+            font-size: 15px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .step-badge {
+            background: var(--accent-color);
+            color: #000;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            margin-bottom: 6px;
+            color: var(--text-muted);
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            background: #0f172a;
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+            margin-bottom: 12px;
+            transition: border-color 0.2s;
+        }
+
+        input:focus {
+            border-color: var(--accent-color);
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--accent-color);
+            color: #000;
+            font-weight: 700;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background-color: var(--accent-hover);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .instructions {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 10px;
+            line-height: 1.5;
+            padding-left: 18px;
+        }
+
+        #resultBox {
+            margin-top: 20px;
+            padding: 14px;
+            border-radius: 8px;
+            display: none;
+            font-size: 14px;
+        }
+
+        .success {
+            background: rgba(0, 210, 106, 0.15);
+            border: 1px solid var(--accent-color);
+            color: #4ade80;
+        }
+
+        .error {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid var(--danger);
+            color: #f87171;
+        }
+
+        pre {
+            background: #0f172a;
+            padding: 10px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 12px;
+            margin-top: 8px;
+            color: #e2e8f0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>AM Premium Generator</h1>
+    <p class="subtitle">Aktivasi Alight Motion Premium Gratis Unlimited</p>
+
+    <!-- STEP 1 -->
+    <div class="step-card">
+        <div class="step-title">
+            <span class="step-badge">1</span> Minta Link Verifikasi
+        </div>
+        <label for="emailInput">Email Akun Alight Motion</label>
+        <input type="email" id="emailInput" placeholder="contoh: user@gmail.com" required>
+        <button id="btnSend" onclick="sendEmail()">Kirim Link ke Email</button>
+        
+        <ul class="instructions">
+            <li>Buka inbox email Anda (cek folder Spam juga).</li>
+            <li>Cari email dari Alight Motion / Alight Creative.</li>
+            <li><strong>Tekan & tahan</strong> tombol "Login ke Alight Creative", lalu pilih <strong>"Salin Link / URL"</strong>.</li>
+        </ul>
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="step-card">
+        <div class="step-title">
+            <span class="step-badge">2</span> Aktivasi Premium
+        </div>
+        <label for="linkInput">Link yang Dicopy dari Email</label>
+        <input type="text" id="linkInput" placeholder="Paste link https://... di sini">
+        <button id="btnVerify" onclick="verifyLink()">Proses Aktivasi Premium</button>
+    </div>
+
+    <!-- RESULT DISPLAY -->
+    <div id="resultBox"></div>
+</div>
+
+<script>
+    async function sendEmail() {
+        const email = document.getElementById('emailInput').value.trim();
+        const btn = document.getElementById('btnSend');
+        const resultBox = document.getElementById('resultBox');
+
+        if (!email) {
+            showResult('Harap masukkan email terlebih dahulu!', false);
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerText = 'Mengirim...';
+        showResult('Mengirim request ke server...', true, true);
+
+        try {
+            const res = await fetch('/api/send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                showResult(`<strong>Berhasil!</strong> ${data.message}<br><small>Silakan cek inbox email kamu untuk menyalin link verifikasi.</small>`, true);
+            } else {
+                showResult(`<strong>Gagal:</strong> ${data.error}`, false);
+            }
+        } catch (err) {
+            showResult(`<strong>Error:</strong> Gagal terhubung ke server`, false);
+        } finally {
+            btn.disabled = false;
+            btn.innerText = 'Kirim Link ke Email';
+        }
+    }
+
+    async function verifyLink() {
+        const email = document.getElementById('emailInput').value.trim();
+        const rawLink = document.getElementById('linkInput').value.trim();
+        const btn = document.getElementById('btnVerify');
+
+        if (!email || !rawLink) {
+            showResult('Email dan Link Verifikasi wajib diisi!', false);
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerText = 'Memproses...';
+        showResult('Verifikasi link sedang diproses...', true, true);
+
+        try {
+            const res = await fetch('/api/verify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, rawLink })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                let html = `<strong>🎉 Premium Berhasil Diaktifkan!</strong><br>`;
+                html += `Masa Aktif: <strong>${data.duration}</strong><br>`;
+                html += `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+                showResult(html, true);
+            } else {
+                showResult(`<strong>Gagal Verifikasi:</strong> ${data.error}`, false);
+            }
+        } catch (err) {
+            showResult(`<strong>Error:</strong> Gagal terhubung ke server`, false);
+        } finally {
+            btn.disabled = false;
+            btn.innerText = 'Proses Aktivasi Premium';
+        }
+    }
+
+    function showResult(message, isSuccess, isInfo = false) {
+        const box = document.getElementById('resultBox');
+        box.style.display = 'block';
+        box.className = isSuccess ? 'success' : 'error';
+        if (isInfo) box.style.borderColor = '#3b82f6';
+        box.innerHTML = message;
+    }
+</script>
+</body>
+</html>
+                                                                                               </html>
+                                                                                               
