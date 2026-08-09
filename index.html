@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Untuk Kesayanganku</title>
+    <style>
+        /* TEMA PINK: Latar belakang gradasi pink romantis */
+        body {
+            margin: 0;
+            padding: 0;
+            background: radial-gradient(circle at center, #ffccd5, #ff758f); 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: white;
+            -webkit-tap-highlight-color: transparent; 
+        }
+
+        /* Wadah Stiker */
+        #stickers-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* GAYA BALON STIKER */
+        .sticker-balloon {
+            position: absolute;
+            top: -150px;
+            z-index: 1;
+            animation: fall linear infinite;
+            filter: drop-shadow(0 5px 10px rgba(255, 10, 84, 0.4));
+            
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.4); 
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            box-shadow: inset -5px -5px 15px rgba(255, 117, 143, 0.5), inset 5px 5px 10px rgba(255,255,255,0.8);
+            
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* GAMBAR DI DALAM BALON: Dipotong jadi bentuk LOVE */
+        .heart-img {
+            width: 75%;
+            height: 75%;
+            object-fit: cover;
+            -webkit-mask-image: url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M462.3 62.6C407.5 15.9 326 24.3 275.7 76.2L256 96.5l-19.7-20.3C186.1 24.3 104.5 15.9 49.7 62.6c-62.8 53.6-66.1 149.8-9.9 207.9l193.5 199.8c12.5 12.9 32.8 12.9 45.3 0l193.5-199.8c56.3-58.1 53-154.3-9.8-207.9z"/></svg>');
+            -webkit-mask-size: contain;
+            -webkit-mask-repeat: no-repeat;
+            -webkit-mask-position: center;
+            mask-image: url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M462.3 62.6C407.5 15.9 326 24.3 275.7 76.2L256 96.5l-19.7-20.3C186.1 24.3 104.5 15.9 49.7 62.6c-62.8 53.6-66.1 149.8-9.9 207.9l193.5 199.8c12.5 12.9 32.8 12.9 45.3 0l193.5-199.8c56.3-58.1 53-154.3-9.8-207.9z"/></svg>');
+            mask-size: contain;
+            mask-repeat: no-repeat;
+            mask-position: center;
+        }
+
+        /* Konten Utama di Tengah Layar */
+        .main-container {
+            text-align: center;
+            z-index: 10;
+            width: 100%;
+            padding: 0 15px; 
+            box-sizing: border-box;
+        }
+
+        /* Tampilan Dasar (Laptop/PC) */
+        .glow-text {
+            color: #fff;
+            text-shadow: 0 0 10px #ff0a54, 0 0 20px #ff0a54, 0 0 30px #c1121f;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+
+        .glow-text-small {
+            color: #fff;
+            text-shadow: 0 0 10px #ff0a54, 0 0 20px #c1121f;
+            font-size: 1.5em;
+            margin-top: 25px;
+            font-weight: bold;
+        }
+
+        .cat-wrapper {
+            display: inline-block;
+            padding: 15px;
+            border-radius: 25px;
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(8px);
+            border: 2px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.6), 0 0 40px #ff0a54;
+        }
+
+        .cat-img {
+            max-width: 70vw;
+            max-height: 45vh;
+            border-radius: 15px;
+            object-fit: cover;
+            display: block;
+        }
+
+        /* --- PENGATURAN KHUSUS UNTUK HP (MOBILE RESPONSIVE) --- */
+        @media screen and (max-width: 768px) {
+            .glow-text {
+                font-size: 1.8em; 
+                margin-bottom: 15px;
+                line-height: 1.2;
+            }
+
+            .glow-text-small {
+                font-size: 1.1em;
+                margin-top: 15px;
+            }
+
+            .cat-wrapper {
+                padding: 10px;
+                border-radius: 20px;
+            }
+
+            .cat-img {
+                max-width: 85vw; 
+                max-height: 40vh;
+            }
+        }
+
+        /* Animasi Mengambang */
+        .animated-cat {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px) rotate(0deg); }
+            25% { transform: translateY(-10px) rotate(2deg); }
+            50% { transform: translateY(0px) rotate(0deg); }
+            75% { transform: translateY(10px) rotate(-2deg); }
+            100% { transform: translateY(0px) rotate(0deg); }
+        }
+
+        /* Animasi Jatuh */
+        @keyframes fall {
+            0% {
+                transform: translateY(-10vh) translateX(0) scale(0.8);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            50% {
+                transform: translateY(45vh) translateX(15px) scale(1);
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(110vh) translateX(-15px) scale(1.1);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Wadah untuk stiker balon -->
+    <div id="stickers-container"></div>
+
+    <!-- Konten Utama (Gambar & Teks) -->
+    <div class="main-container">
+        <h1 class="glow-text">Bunga Spesial Buat Zoya 💖</h1>
+        
+        <!-- Gambar Utama dengan Animasi (Link Fotonya Sudah Dimasukkan) -->
+        <div class="cat-wrapper animated-cat">
+            <img src="https://files.catbox.moe/6nno0i.png" alt="Foto Spesial" class="cat-img">
+        </div>
+
+        <p class="glow-text-small">I Love You More Than Anything! 🥰</p>
+    </div>
+
+    <script>
+        function createSticker() {
+            const balloon = document.createElement('div');
+            balloon.classList.add('sticker-balloon');
+            
+            const img = document.createElement('img');
+            // Link Fotonya juga sudah dimasukkan ke stiker balon
+            img.src = 'https://files.catbox.moe/mwppte.jfif'; 
+            img.classList.add('heart-img');
+            
+            balloon.appendChild(img);
+            
+            const size = Math.random() * 30 + 60;
+            balloon.style.width = size + 'px';
+            balloon.style.height = size + 'px';
+            
+            balloon.style.left = Math.random() * 100 + 'vw';
+            
+            balloon.style.animationDuration = Math.random() * 4 + 5 + 's';
+            
+            document.getElementById('stickers-container').appendChild(balloon);
+            
+            setTimeout(() => {
+                balloon.remove();
+            }, 9000);
+        }
+
+        // Bikin balon baru tiap 800 milidetik
+        setInterval(createSticker, 800);
+    </script>
+</body>
+</html>

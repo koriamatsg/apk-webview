@@ -1,0 +1,107 @@
+/* Pengaturan Latar Belakang Gelap agar Efek Glow Terlihat */
+body {
+    margin: 0;
+    padding: 0;
+    background: radial-gradient(circle, #2b0015, #0a0005); 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    overflow: hidden; /* Menyembunyikan scrollbar */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    color: white;
+}
+
+/* Wadah Stiker agar tidak mengganggu klik */
+#stickers-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Gaya untuk setiap stiker yang jatuh */
+.sticker {
+    position: absolute;
+    top: -150px;
+    z-index: 1;
+    animation: fall linear infinite;
+    /* Efek bayangan cahaya muda pada stiker */
+    filter: drop-shadow(0 0 10px rgba(255, 105, 180, 0.8));
+}
+
+.main-container {
+    text-align: center;
+    z-index: 10;
+}
+
+/* Efek Glow (Bercahaya) pada Teks */
+.glow-text {
+    color: #fff;
+    text-shadow: 0 0 10px #ff69b4, 0 0 20px #ff69b4, 0 0 30px #ff1493, 0 0 40px #ff1493;
+    font-size: 2.2em;
+    margin-bottom: 20px;
+}
+
+.glow-text-small {
+    color: #fff;
+    text-shadow: 0 0 10px #ffb6c1, 0 0 20px #ff69b4;
+    font-size: 1.5em;
+    margin-top: 25px;
+    font-weight: bold;
+}
+
+/* Bingkai Buket dengan Efek Glow */
+.bouquet-wrapper {
+    display: inline-block;
+    padding: 10px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(5px);
+    border: 2px solid rgba(255, 105, 180, 0.6);
+    /* Cahaya pink menyala dari kotak */
+    box-shadow: 0 0 25px #ff69b4, 0 0 50px #ff1493, inset 0 0 15px #ff69b4;
+}
+
+.bouquet-img {
+    max-width: 85vw;
+    max-height: 50vh;
+    border-radius: 15px;
+    object-fit: cover;
+    display: block;
+}
+
+/* Animasi Buket Gerak-gerak (Melingkar/Mengambang) */
+.animated-bouquet {
+    animation: float 4s ease-in-out infinite;
+}
+
+/* Keyframes untuk pergerakan buket */
+@keyframes float {
+    0% { transform: translateY(0px) rotate(0deg); }
+    25% { transform: translateY(-15px) rotate(2deg); }
+    50% { transform: translateY(0px) rotate(0deg); }
+    75% { transform: translateY(15px) rotate(-2deg); }
+    100% { transform: translateY(0px) rotate(0deg); }
+}
+
+/* Animasi Stiker Jatuh dari Atas ke Bawah */
+@keyframes fall {
+    0% {
+        transform: translateY(-10vh) rotate(-15deg) scale(0.8);
+        opacity: 0;
+    }
+    10% {
+        opacity: 1;
+    }
+    90% {
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(110vh) rotate(25deg) scale(1.2);
+        opacity: 0;
+    }
+}
